@@ -43,11 +43,11 @@ public abstract class CursedInternalSlotMixin {
             AE2Things.STORAGE_INSTANCE.updateDisk(id, storage);
 
             newStack.setCount(newStack.getMaxStackSize());
-            this.setCursorStack(newStack);
+            this.setCarried(newStack);
             ci.cancel();
         }
     }
 
     @Shadow
-    public abstract void setCursorStack(ItemStack slot);
+    public abstract void setCarried(ItemStack slot);
 }
