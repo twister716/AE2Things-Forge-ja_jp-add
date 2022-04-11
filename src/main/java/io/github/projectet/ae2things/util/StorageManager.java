@@ -1,35 +1,35 @@
 package io.github.projectet.ae2things.util;
 
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.PersistentState;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class StorageManager extends PersistentState {
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.saveddata.SavedData;
+
+public class StorageManager extends SavedData {
     private final Map<UUID, DataStorage> disks;
 
     public StorageManager() {
         disks = new HashMap<>();
-        this.markDirty();
+        this.setDirty();
     }
 
     private StorageManager(Map<UUID, DataStorage> disks) {
         this.disks = disks;
-        this.markDirty();
+        this.setDirty();
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt) {
-        NbtList diskList = new NbtList();
+    public CompoundTag save(CompoundTag nbt) {
+        ListTag diskList = new ListTag();
         for (Map.Entry<UUID, DataStorage> entry : disks.entrySet()) {
-            NbtCompound disk = new NbtCompound();
+            CompoundTag disk = new CompoundTag();
 
-            disk.putUuid(Constants.DISKUUID, entry.getKey());
+            disk.putUUID(Constants.DISKUUID, entry.getKey());
             disk.put(Constants.DISKDATA, entry.getValue().toNbt());
             diskList.add(disk);
         }
@@ -38,24 +38,24 @@ public class StorageManager extends PersistentState {
         return nbt;
     }
 
-    public static StorageManager readNbt(NbtCompound nbt) {
+    public static StorageManager readNbt(CompoundTag nbt) {
         Map<UUID, DataStorage> disks = new HashMap<>();
-        NbtList diskList = nbt.getList(Constants.DISKLIST, NbtCompound.COMPOUND_TYPE);
-        for(int i = 0; i < diskList.size(); i++) {
-            NbtCompound disk = diskList.getCompound(i);
-            disks.put(disk.getUuid(Constants.DISKUUID), DataStorage.fromNbt(disk.getCompound(Constants.DISKDATA)));
+        ListTag diskList = nbt.getList(Constants.DISKLIST, CompoundTag.TAG_COMPOUND);
+        for (int i = 0; i < diskList.size(); i++) {
+            CompoundTag disk = diskList.getCompound(i);
+            disks.put(disk.getUUID(Constants.DISKUUID), DataStorage.fromNbt(disk.getCompound(Constants.DISKDATA)));
         }
         return new StorageManager(disks);
     }
 
     public void updateDisk(UUID uuid, DataStorage dataStorage) {
         disks.put(uuid, dataStorage);
-        markDirty();
+        setDirty();
     }
 
     public void removeDisk(UUID uuid) {
         disks.remove(uuid);
-        markDirty();
+        setDirty();
     }
 
     public boolean hasUUID(UUID uuid) {
@@ -63,15 +63,15 @@ public class StorageManager extends PersistentState {
     }
 
     public DataStorage getOrCreateDisk(UUID uuid) {
-        if(!disks.containsKey(uuid)) {
+        if (!disks.containsKey(uuid)) {
             updateDisk(uuid, new DataStorage());
         }
         return disks.get(uuid);
     }
 
-    public void modifyDisk(UUID diskID, NbtList stackKeys, long[] stackAmounts, long itemCount) {
+    public void modifyDisk(UUID diskID, ListTag stackKeys, long[] stackAmounts, long itemCount) {
         DataStorage diskToModify = getOrCreateDisk(diskID);
-        if(stackKeys != null && stackAmounts != null) {
+        if (stackKeys != null && stackAmounts != null) {
             diskToModify.stackKeys = stackKeys;
             diskToModify.stackAmounts = stackAmounts;
         }
@@ -81,7 +81,8 @@ public class StorageManager extends PersistentState {
     }
 
     public static StorageManager getInstance(MinecraftServer server) {
-        ServerWorld world = server.getWorld(ServerWorld.OVERWORLD);
-        return world.getPersistentStateManager().getOrCreate(StorageManager::readNbt, StorageManager::new, Constants.MANAGER_NAME);
+        ServerLevel world = server.getLevel(ServerLevel.OVERWORLD);
+        return world.getDataStorage().computeIfAbsent(StorageManager::readNbt, StorageManager::new,
+                Constants.MANAGER_NAME);
     }
 }

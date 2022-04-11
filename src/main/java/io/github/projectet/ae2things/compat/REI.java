@@ -1,34 +1,37 @@
 package io.github.projectet.ae2things.compat;
 
-import appeng.core.AppEng;
 import io.github.projectet.ae2things.AE2Things;
 import io.github.projectet.ae2things.gui.advancedInscriber.AdvancedInscriberRootPanel;
-import me.shedaniel.math.Rectangle;
-import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
-import me.shedaniel.rei.api.client.registry.category.ButtonArea;
-import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
-import me.shedaniel.rei.api.client.registry.screen.ScreenRegistry;
-import me.shedaniel.rei.api.common.category.CategoryIdentifier;
-import me.shedaniel.rei.api.common.util.EntryStacks;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.registry.Registry;
 
-public class REI implements REIClientPlugin {
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 
-    CategoryIdentifier<?> ID = CategoryIdentifier.of(AppEng.makeId("ae2.inscriber"));
+import mezz.jei.api.IModPlugin;
+import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.registration.IGuiHandlerRegistration;
+import mezz.jei.api.registration.IRecipeCatalystRegistration;
+
+import appeng.core.AppEng;
+
+@JeiPlugin
+public class REI implements IModPlugin {
+    ResourceLocation ID = AppEng.makeId("ae2.inscriber");
 
     @Override
-    public void registerScreens(ScreenRegistry registry) {
-        registry.registerContainerClickArea(
-                new Rectangle(82, 39, 26, 16),
-                AdvancedInscriberRootPanel.class,
-                ID);
+    public ResourceLocation getPluginUid() {
+        return AE2Things.id("plugin");
     }
 
     @Override
-    public void registerCategories(CategoryRegistry registry) {
-        ItemStack inscriber = new ItemStack(Registry.ITEM.get(AE2Things.id("advanced_inscriber")));
-        registry.addWorkstations(ID, EntryStacks.of(inscriber));
-        registry.setPlusButtonArea(ID, ButtonArea.defaultArea());
+    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
+        registration.addRecipeCatalyst(new ItemStack(AE2Things.ADVANCED_INSCRIBER_ITEM.get()), ID);
+    }
+
+    @Override
+    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
+        registration.addRecipeClickArea(
+                AdvancedInscriberRootPanel.class,
+                82, 39, 26, 16,
+                ID);
     }
 }

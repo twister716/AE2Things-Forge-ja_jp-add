@@ -1,10 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "aba",
-    "aca",
-    "ada"
-  ],
+  "pattern": ["aba", "aca", "ada"],
   "key": {
     "a": {
       "item": "ae2:quartz_growth_accelerator"

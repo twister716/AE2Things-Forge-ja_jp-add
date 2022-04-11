@@ -1,5 +1,22 @@
 package io.github.projectet.ae2things.block.entity;
 
+import java.util.EnumSet;
+import java.util.List;
+
+import javax.annotation.Nullable;
+
+import io.github.projectet.ae2things.AE2Things;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+
 import appeng.api.config.Actionable;
 import appeng.api.config.PowerMultiplier;
 import appeng.api.inventories.ISegmentedInventory;
@@ -26,20 +43,6 @@ import appeng.util.inv.AppEngInternalInventory;
 import appeng.util.inv.CombinedInternalInventory;
 import appeng.util.inv.FilteredInternalInventory;
 import appeng.util.inv.filter.IAEItemFilter;
-import io.github.projectet.ae2things.AE2Things;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
-
-import javax.annotation.Nullable;
-import java.util.EnumSet;
-import java.util.List;
 
 public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IGridTickable, IUpgradeableObject {
 
@@ -58,7 +61,8 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
 
     private int finalStep;
 
-    private final InternalInventory inv = new CombinedInternalInventory(this.topItemHandler, this.botItemHandler, this.sideItemHandler);
+    private final InternalInventory inv = new CombinedInternalInventory(this.topItemHandler, this.botItemHandler,
+            this.sideItemHandler);
 
     private final IUpgradeInventory upgrades;
     private InscriberRecipe cachedTask;
@@ -67,11 +71,10 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     private boolean smash;
     private long clientStart;
 
-
     public BEAdvancedInscriber(BlockPos pos, BlockState state) {
-        super(AE2Things.ADVANCED_INSCRIBER_BE, pos, state);
+        super(AE2Things.ADVANCED_INSCRIBER_BE.get(), pos, state);
 
-        this.upgrades = UpgradeInventories.forMachine(AE2Things.ADVANCED_INSCRIBER, 5, this::saveChanges);
+        this.upgrades = UpgradeInventories.forMachine(AE2Things.ADVANCED_INSCRIBER.get(), 5, this::saveChanges);
 
         this.sideItemHandler.setMaxStackSize(1, 64);
 
@@ -86,7 +89,8 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
         this.botItemHandlerExtern = new FilteredInternalInventory(this.botItemHandler, filter);
         this.sideItemHandlerExtern = new FilteredInternalInventory(this.sideItemHandler, filter);
 
-        this.combinedExtInventory = new CombinedInternalInventory(topItemHandlerExtern, botItemHandlerExtern, sideItemHandlerExtern);
+        this.combinedExtInventory = new CombinedInternalInventory(topItemHandlerExtern, botItemHandlerExtern,
+                sideItemHandlerExtern);
     }
 
     @Override
@@ -95,7 +99,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     }
 
     @Override
-    public InternalInventory getExposedInventoryForSide(Direction facing)  {
+    public InternalInventory getExposedInventoryForSide(Direction facing) {
         return combinedExtInventory;
     }
 
@@ -134,7 +138,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     }
 
     @Override
-    protected boolean readFromStream(PacketByteBuf data) {
+    protected boolean readFromStream(FriendlyByteBuf data) {
         var c = super.readFromStream(data);
 
         var oldSmash = isSmash();
@@ -146,7 +150,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
         }
 
         for (int i = 0; i < this.inv.size(); i++) {
-            this.inv.setItemDirect(i, data.readItemStack());
+            this.inv.setItemDirect(i, data.readItem());
         }
         this.cachedTask = null;
 
@@ -154,18 +158,18 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     }
 
     @Override
-    protected void writeToStream(PacketByteBuf data) {
+    protected void writeToStream(FriendlyByteBuf data) {
         super.writeToStream(data);
 
         data.writeBoolean(isSmash());
         for (int i = 0; i < this.inv.size(); i++) {
-            data.writeItemStack(inv.getStackInSlot(i));
+            data.writeItem(inv.getStackInSlot(i));
         }
     }
 
     @Nullable
     @Override
-    public InternalInventory getSubInventory(Identifier id) {
+    public InternalInventory getSubInventory(ResourceLocation id) {
         if (id.equals(ISegmentedInventory.STORAGE)) {
             return this.getInternalInventory();
         } else if (id.equals(ISegmentedInventory.UPGRADES)) {
@@ -181,7 +185,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
 
     @Nullable
     public InscriberRecipe getTask() {
-        if (this.cachedTask == null && world != null) {
+        if (this.cachedTask == null && level != null) {
             ItemStack input = this.sideItemHandler.getStackInSlot(0);
             ItemStack plateA = this.topItemHandler.getStackInSlot(0);
             ItemStack plateB = this.botItemHandler.getStackInSlot(0);
@@ -189,25 +193,25 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
                 return null; // No input to handle
             }
 
-            this.cachedTask = InscriberRecipes.findRecipe(world, input, plateA, plateB, true);
+            this.cachedTask = InscriberRecipes.findRecipe(level, input, plateA, plateB, true);
         }
         return this.cachedTask;
     }
 
     @Override
-    public void writeNbt(NbtCompound data) {
-        super.writeNbt(data);
+    public void saveAdditional(CompoundTag data) {
+        super.saveAdditional(data);
         this.upgrades.writeToNBT(data, "upgrades");
     }
 
     @Override
-    public void loadTag(NbtCompound data) {
+    public void loadTag(CompoundTag data) {
         super.loadTag(data);
         this.upgrades.readFromNBT(data, "upgrades");
     }
 
     @Override
-    public void addAdditionalDrops(World level, BlockPos pos, List<ItemStack> drops) {
+    public void addAdditionalDrops(Level level, BlockPos pos, List<ItemStack> drops) {
         super.addAdditionalDrops(level, pos, drops);
 
         for (var upgrade : upgrades) {
@@ -240,7 +244,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
             if (this.finalStep == 8) {
                 final InscriberRecipe out = this.getTask();
                 if (out != null) {
-                    final ItemStack outputCopy = out.getOutput().copy();
+                    final ItemStack outputCopy = out.getResultItem().copy();
 
                     if (this.sideItemHandler.insertItem(1, outputCopy, false).isEmpty()) {
                         this.setProcessingTime(0);
@@ -251,10 +255,11 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
                         this.sideItemHandler.extractItem(0, 1, false);
                     }
 
-                    if(sideItemHandler.getStackInSlot(1).getItem() != Items.AIR) {
+                    if (sideItemHandler.getStackInSlot(1).getItem() != Items.AIR) {
                         ItemStack outStack = sideItemHandler.getStackInSlot(1);
                         AEKey itemKey = AEItemKey.of(outStack);
-                        long inserted = getMainNode().getGrid().getStorageService().getInventory().insert(itemKey, outStack.getCount(), Actionable.MODULATE, new MachineSource(this));
+                        long inserted = getMainNode().getGrid().getStorageService().getInventory().insert(itemKey,
+                                outStack.getCount(), Actionable.MODULATE, new MachineSource(this));
                         sideItemHandler.extractItem(1, (int) inserted, false);
                     }
                 }
@@ -295,7 +300,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
                 this.setProcessingTime(this.getMaxProcessingTime());
                 final InscriberRecipe out = this.getTask();
                 if (out != null) {
-                    final ItemStack outputCopy = out.getOutput().copy();
+                    final ItemStack outputCopy = out.getResultItem().copy();
                     if (this.sideItemHandler.insertItem(1, outputCopy, true).isEmpty()) {
                         this.setSmash(true);
                         this.finalStep = 0;
@@ -319,7 +324,6 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     public void setSmash(boolean smash) {
         this.smash = smash;
     }
-
 
     public class FilteredInventory implements IAEItemFilter {
         @Override
@@ -346,7 +350,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
                 if (AEItems.NAME_PRESS.isSameAs(stack)) {
                     return true;
                 }
-                return InscriberRecipes.isValidOptionalIngredient(getWorld(), stack);
+                return InscriberRecipes.isValidOptionalIngredient(getLevel(), stack);
             }
             return true;
         }

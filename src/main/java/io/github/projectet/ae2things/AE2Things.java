@@ -1,76 +1,134 @@
 package io.github.projectet.ae2things;
 
-import appeng.api.IAEAddonEntrypoint;
-import appeng.api.storage.StorageCells;
-import appeng.api.upgrades.Upgrades;
-import appeng.block.AEBaseEntityBlock;
-import appeng.core.definitions.AEItems;
+import java.util.function.Supplier;
+
+import com.google.common.base.Suppliers;
+
 import io.github.projectet.ae2things.block.BlockAdvancedInscriber;
 import io.github.projectet.ae2things.block.BlockCrystalGrowth;
 import io.github.projectet.ae2things.block.entity.BEAdvancedInscriber;
 import io.github.projectet.ae2things.block.entity.BECrystalGrowth;
+import io.github.projectet.ae2things.client.AE2ThingsClient;
 import io.github.projectet.ae2things.command.Command;
+import io.github.projectet.ae2things.gui.advancedInscriber.AdvancedInscriberMenu;
 import io.github.projectet.ae2things.gui.cell.DISKItemCellGuiHandler;
+import io.github.projectet.ae2things.gui.crystalGrowth.CrystalGrowthMenu;
 import io.github.projectet.ae2things.item.AETItems;
 import io.github.projectet.ae2things.storage.DISKCellHandler;
 import io.github.projectet.ae2things.util.StorageManager;
-import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
-import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.minecraft.block.Block;
-import net.minecraft.block.Material;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
-public class AE2Things implements IAEAddonEntrypoint {
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.Material;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.RegistryObject;
+
+import appeng.api.storage.StorageCells;
+import appeng.api.upgrades.Upgrades;
+import appeng.core.definitions.AEItems;
+
+@Mod(AE2Things.MOD_ID)
+public class AE2Things {
 
     public static final String MOD_ID = "ae2things";
 
-    public static final ItemGroup ITEM_GROUP = FabricItemGroupBuilder.build(id("item_group"), () -> new ItemStack(AETItems.DISK_HOUSING));
-
     public static StorageManager STORAGE_INSTANCE = new StorageManager();
 
-    public static final Block ADVANCED_INSCRIBER = new BlockAdvancedInscriber(FabricBlockSettings.of(Material.METAL).hardness(4f));
-    public static BlockEntityType<BEAdvancedInscriber> ADVANCED_INSCRIBER_BE = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("advanced_inscriber_be"), FabricBlockEntityTypeBuilder.create(BEAdvancedInscriber::new, ADVANCED_INSCRIBER).build());
+    public static final Supplier<CreativeModeTab> ITEM_GROUP = Suppliers
+            .memoize(() -> new CreativeModeTab("ae2things.item_group") {
+                @Override
+                public ItemStack makeIcon() {
+                    return new ItemStack(AETItems.DISK_HOUSING.get());
+                }
+            });
 
+    // @formatter:off
+    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Registry.BLOCK_REGISTRY, MOD_ID);
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister
+            .create(Registry.BLOCK_ENTITY_TYPE_REGISTRY, MOD_ID);
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registry.ITEM_REGISTRY, MOD_ID);
 
-    public static final Block CRYSTAL_GROWTH = new BlockCrystalGrowth(FabricBlockSettings.of(Material.METAL).hardness(4f));
-    public static BlockEntityType<BECrystalGrowth> CRYSTAL_GROWTH_BE = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("crystal_growth_be"), FabricBlockEntityTypeBuilder.create(BECrystalGrowth::new, CRYSTAL_GROWTH).build());
+    public static final RegistryObject<BlockAdvancedInscriber> ADVANCED_INSCRIBER = BLOCKS.register(
+            "advanced_inscriber",
+            () -> new BlockAdvancedInscriber(BlockBehaviour.Properties.of(Material.METAL).destroyTime(4f)));
+    public static final RegistryObject<BlockCrystalGrowth> CRYSTAL_GROWTH = BLOCKS.register("crystal_growth",
+            () -> new BlockCrystalGrowth(BlockBehaviour.Properties.of(Material.METAL).destroyTime(4f)));
 
-    public static Identifier id(String path) {
-        return new Identifier(MOD_ID , path);
+    public static final RegistryObject<BlockEntityType<BEAdvancedInscriber>> ADVANCED_INSCRIBER_BE = BLOCK_ENTITIES
+            .register("advanced_inscriber_be",
+                    () -> BlockEntityType.Builder.of(BEAdvancedInscriber::new, ADVANCED_INSCRIBER.get()).build(null));
+    public static final RegistryObject<BlockEntityType<BECrystalGrowth>> CRYSTAL_GROWTH_BE = BLOCK_ENTITIES.register(
+            "crystal_growth_be",
+            () -> BlockEntityType.Builder.of(BECrystalGrowth::new, CRYSTAL_GROWTH.get()).build(null));
+
+    public static final RegistryObject<Item> ADVANCED_INSCRIBER_ITEM = createBlockItem(ADVANCED_INSCRIBER);
+    public static final RegistryObject<Item> CRYSTAL_GROWTH_ITEM = createBlockItem(CRYSTAL_GROWTH);
+    // @formatter:on
+
+    public static ResourceLocation id(String path) {
+        return new ResourceLocation(MOD_ID, path);
     }
 
-    private void registerBlockwithItem(String path, Block block) {
-        Registry.register(Registry.BLOCK, id(path), block);
-        Registry.register(Registry.ITEM, id(path), new BlockItem(block, new Item.Settings().group(ITEM_GROUP)));
+    private static RegistryObject<Item> createBlockItem(RegistryObject<? extends Block> block) {
+        return ITEMS.register(block.getId().getPath(),
+                () -> new BlockItem(block.get(), new Item.Properties().tab(ITEM_GROUP.get())));
     }
 
-    @Override
-    public void onAe2Initialized() {
+    public AE2Things() {
+        var modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        BLOCKS.register(modEventBus);
+        BLOCK_ENTITIES.register(modEventBus);
+        ITEMS.register(modEventBus);
+
         AETItems.init();
-        Command.init();
+
+        modEventBus.addGenericListener(MenuType.class, AE2Things::registerMenus);
+        modEventBus.addListener(AE2Things::commonSetup);
+
+        MinecraftForge.EVENT_BUS.addListener(Command::commandRegister);
+        MinecraftForge.EVENT_BUS.addListener(AE2Things::worldTick);
+
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> AE2ThingsClient::init);
+    }
+
+    public static void registerMenus(RegistryEvent.Register<MenuType<?>> event) {
+        event.getRegistry().registerAll(
+                AdvancedInscriberMenu.ADVANCED_INSCRIBER_SHT, CrystalGrowthMenu.CRYSTAL_GROWTH_SHT);
+    }
+
+    public static void commonSetup(FMLCommonSetupEvent event) {
+        AETItems.commonSetup();
 
         StorageCells.addCellHandler(DISKCellHandler.INSTANCE);
         StorageCells.addCellGuiHandler(new DISKItemCellGuiHandler());
 
-        registerBlockwithItem("advanced_inscriber", ADVANCED_INSCRIBER);
-        ((AEBaseEntityBlock<BEAdvancedInscriber>) ADVANCED_INSCRIBER).setBlockEntity(BEAdvancedInscriber.class, ADVANCED_INSCRIBER_BE, null, null);
+        Upgrades.add(AEItems.SPEED_CARD, ADVANCED_INSCRIBER.get(), 5);
+        Upgrades.add(AEItems.SPEED_CARD, CRYSTAL_GROWTH.get(), 3);
 
-        registerBlockwithItem("crystal_growth", CRYSTAL_GROWTH);
-        ((AEBaseEntityBlock<BECrystalGrowth>) CRYSTAL_GROWTH).setBlockEntity(BECrystalGrowth.class, CRYSTAL_GROWTH_BE, null, null);
+        ADVANCED_INSCRIBER.get().setBlockEntity(BEAdvancedInscriber.class, ADVANCED_INSCRIBER_BE.get(), null, null);
+        CRYSTAL_GROWTH.get().setBlockEntity(BECrystalGrowth.class, CRYSTAL_GROWTH_BE.get(), null, null);
+    }
 
-        Upgrades.add(AEItems.SPEED_CARD, ADVANCED_INSCRIBER, 5);
-        Upgrades.add(AEItems.SPEED_CARD, CRYSTAL_GROWTH, 3);
-
-        ServerTickEvents.START_WORLD_TICK.register((world -> {
-            STORAGE_INSTANCE = StorageManager.getInstance(world.getServer());
-        }));
+    public static void worldTick(TickEvent.WorldTickEvent event) {
+        if (event.phase == TickEvent.Phase.START) {
+            STORAGE_INSTANCE = StorageManager.getInstance(event.world.getServer());
+        }
     }
 }

@@ -1,5 +1,14 @@
 package io.github.projectet.ae2things.gui.advancedInscriber;
 
+import io.github.projectet.ae2things.block.entity.BEAdvancedInscriber;
+
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+
 import appeng.api.inventories.InternalInventory;
 import appeng.api.upgrades.IUpgradeableObject;
 import appeng.blockentity.misc.InscriberRecipes;
@@ -12,20 +21,15 @@ import appeng.menu.implementations.UpgradeableMenu;
 import appeng.menu.interfaces.IProgressProvider;
 import appeng.menu.slot.OutputSlot;
 import appeng.menu.slot.RestrictedInputSlot;
-import io.github.projectet.ae2things.block.entity.BEAdvancedInscriber;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.world.World;
 
-public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> implements IProgressProvider, IUpgradeableObject {
+public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber>
+        implements IProgressProvider, IUpgradeableObject {
 
-    public static ScreenHandlerType<AdvancedInscriberMenu> ADVANCED_INSCRIBER_SHT = MenuTypeBuilder.create(AdvancedInscriberMenu::new, BEAdvancedInscriber.class).build("advanced_inscriber");
+    public static MenuType<AdvancedInscriberMenu> ADVANCED_INSCRIBER_SHT = MenuTypeBuilder
+            .create(AdvancedInscriberMenu::new, BEAdvancedInscriber.class).build("advanced_inscriber");
 
     private InternalInventory inventory;
-    private World world;
+    private Level world;
 
     private final Slot top;
     private final Slot middle;
@@ -37,19 +41,22 @@ public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> 
     @GuiSync(3)
     public int processingTime = -1;
 
-    public AdvancedInscriberMenu(int syncId, PlayerInventory playerInventory, BEAdvancedInscriber advancedInscriber) {
+    public AdvancedInscriberMenu(int syncId, Inventory playerInventory, BEAdvancedInscriber advancedInscriber) {
         super(ADVANCED_INSCRIBER_SHT, syncId, playerInventory, advancedInscriber);
-        world = playerInventory.player.world;
+        world = playerInventory.player.level;
         inventory = advancedInscriber.getInternalInventory();
 
-        RestrictedInputSlot top = new RestrictedInputSlot(RestrictedInputSlot.PlacableItemType.INSCRIBER_PLATE, inventory, 0);
+        RestrictedInputSlot top = new RestrictedInputSlot(RestrictedInputSlot.PlacableItemType.INSCRIBER_PLATE,
+                inventory, 0);
         this.top = this.addSlot(top, SlotSemantics.INSCRIBER_PLATE_TOP);
 
-        RestrictedInputSlot bottom = new RestrictedInputSlot(RestrictedInputSlot.PlacableItemType.INSCRIBER_PLATE, inventory,
+        RestrictedInputSlot bottom = new RestrictedInputSlot(RestrictedInputSlot.PlacableItemType.INSCRIBER_PLATE,
+                inventory,
                 1);
         this.bottom = this.addSlot(bottom, SlotSemantics.INSCRIBER_PLATE_BOTTOM);
 
-        RestrictedInputSlot middle = new RestrictedInputSlot(RestrictedInputSlot.PlacableItemType.INSCRIBER_INPUT, inventory,
+        RestrictedInputSlot middle = new RestrictedInputSlot(RestrictedInputSlot.PlacableItemType.INSCRIBER_INPUT,
+                inventory,
                 2);
         this.middle = this.addSlot(middle, SlotSemantics.MACHINE_INPUT);
 
@@ -81,9 +88,9 @@ public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> 
         } else if (s == this.top && !bot.isEmpty() || s == this.bottom && !top.isEmpty()) {
             ItemStack otherSlot;
             if (s == this.top) {
-                otherSlot = this.bottom.getStack();
+                otherSlot = this.bottom.getItem();
             } else {
-                otherSlot = this.top.getStack();
+                otherSlot = this.top.getItem();
             }
 
             // name presses
@@ -110,7 +117,7 @@ public class AdvancedInscriberMenu extends UpgradeableMenu<BEAdvancedInscriber> 
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
+    public boolean stillValid(Player player) {
         return true;
     }
 }

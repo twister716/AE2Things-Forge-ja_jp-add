@@ -1,18 +1,19 @@
 package io.github.projectet.ae2things.storage;
 
+import java.util.List;
+
+import com.google.common.base.Preconditions;
+
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.storage.cells.IBasicCellItem;
 import appeng.api.storage.cells.ICellWorkbenchItem;
-import appeng.items.storage.BasicStorageCell;
 import appeng.me.cells.BasicCellHandler;
 import appeng.util.ConfigInventory;
-import com.google.common.base.Preconditions;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
-
-import java.util.List;
 
 public interface IDISKCellItem extends ICellWorkbenchItem {
 
@@ -37,8 +38,9 @@ public interface IDISKCellItem extends ICellWorkbenchItem {
      * @return true to preventAdditionOfItem
      */
     default boolean isBlackListed(ItemStack cellItem, AEKey requestedAddition) {
-        if(((AEItemKey) requestedAddition).getItem() instanceof IBasicCellItem) {
-            return BasicCellHandler.INSTANCE.getCellInventory(((AEItemKey) requestedAddition).toStack(), null).getUsedBytes() > 0;
+        if (((AEItemKey) requestedAddition).getItem() instanceof IBasicCellItem) {
+            return BasicCellHandler.INSTANCE.getCellInventory(((AEItemKey) requestedAddition).toStack(), null)
+                    .getUsedBytes() > 0;
         }
         return false;
     }
@@ -74,7 +76,7 @@ public interface IDISKCellItem extends ICellWorkbenchItem {
     /**
      * Convenient helper to append useful tooltip information.
      */
-    default void addCellInformationToTooltip(ItemStack is, List<Text> lines) {
+    default void addCellInformationToTooltip(ItemStack is, List<Component> lines) {
         Preconditions.checkArgument(is.getItem() == this);
         DISKCellHandler.INSTANCE.addCellInformationToTooltip(is, lines);
     }

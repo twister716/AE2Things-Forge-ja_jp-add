@@ -1,16 +1,12 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "aba",
-    "b b",
-    "cdc"
-  ],
+  "pattern": ["aba", "b b", "cdc"],
   "key": {
     "a": {
       "item": "ae2:quartz_glass"
     },
     "b": {
-      "tag": "c:redstone_dusts"
+      "tag": "forge:dusts/redstone"
     },
     "c": {
       "item": "minecraft:netherite_ingot"

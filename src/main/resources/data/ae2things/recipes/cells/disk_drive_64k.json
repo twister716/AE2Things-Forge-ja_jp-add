@@ -1,16 +1,12 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "aba",
-    "bcb",
-    "ded"
-  ],
+  "pattern": ["aba", "bcb", "ded"],
   "key": {
     "a": {
       "item": "ae2:quartz_glass"
     },
     "b": {
-      "tag": "c:redstone_dusts"
+      "tag": "forge:dusts/redstone"
     },
     "c": {
       "item": "ae2:cell_component_64k"

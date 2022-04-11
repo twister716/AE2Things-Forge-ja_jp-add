@@ -1,11 +1,10 @@
 {
   "package": "io.github.projectet.ae2things.mixin",
+  "refmap": "mixins.ae2things.refmap.json",
   "required": false,
   "minVersion": "0.8",
-  "compatibilityLevel": "JAVA_17",
-  "mixins": [
-    "CursedInternalSlotMixin"
-  ],
+  "compatibilityLevel": "JAVA_8",
+  "mixins": ["CursedInternalSlotMixin"],
   "injectors": {
     "defaultRequire": 1
   }

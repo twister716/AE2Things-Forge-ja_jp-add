@@ -1,10 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "aba",
-    "cdc",
-    "aba"
-  ],
+  "pattern": ["aba", "cdc", "aba"],
   "key": {
     "a": {
       "item": "minecraft:iron_ingot"

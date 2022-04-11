@@ -1,133 +1,216 @@
-plugins {
-    id 'fabric-loom' version '0.11-SNAPSHOT'
-    id 'maven-publish'
-}
-
-version = project.mod_version
-group = project.maven_group
-
-repositories {
-    // Add repositories to retrieve artifacts from in here.
-    // You should only use this when depending on other mods because
-    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
-    // for more information about repositories.
+buildscript {
     repositories {
         maven {
-            name "Modmaven"
-            url "https://modmaven.dev/"
-            // For Gradle 5.1 and above, limit it to just AE2
-            content {
-                includeGroup 'appeng'
-            }
+            name = "MinecraftForge"
+            url = uri("https://files.minecraftforge.net/maven/")
         }
+
+        mavenCentral()
     }
+
+    dependencies {
+        classpath(group: "net.minecraftforge.gradle", name: "ForgeGradle", version: "5.1.+", changing: true)
+        classpath 'org.spongepowered:mixingradle:0.7.+'
+    }
+}
+
+plugins {
+    id("com.matthewprenger.cursegradle") version "1.4.0"
+    id("com.diffplug.spotless") version "6.4.1"
+}
+
+apply(plugin: "net.minecraftforge.gradle")
+apply plugin: 'org.spongepowered.mixin'
+
+group = "dev.technici4n"
+version = System.getenv("AE2THINGS_VERSION") ?: "0.0.0"
+
+repositories {
     maven {
-        url "https://maven.shedaniel.me/"
+        name = "Modmaven"
+        url = uri("https://modmaven.dev/")
 
         content {
-            includeGroup "me.shedaniel"
-            includeGroup "me.shedaniel.cloth"
-            includeGroup "dev.architectury"
+            includeGroup("appeng")
         }
     }
+
     maven {
-        url "https://maven.bai.lol"
+        name = "Progwml6 maven"
+        url = uri("https://dvs1.progwml6.com/files/maven/")
+
         content {
-            includeGroup "mcp.mobius.waila"
+            includeGroup("mezz.jei")
         }
     }
+
     maven {
-        url "https://cursemaven.com"
-        content {
-            includeGroup "curse.maven"
-        }
+        name = "Local"
+        url = file("libs").toURI()
     }
 }
 
 dependencies {
-    // To change the versions see the gradle.properties file
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    minecraft("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
 
-    // Fabric API. This is technically optional, but you probably want it anyway.
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation(fg.deobf("appeng:appliedenergistics2:${ae2_version}"))
 
-    modImplementation("appeng:appliedenergistics2-fabric:${project.ae2_version}")
+    compileOnly(fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api"))
+    runtimeOnly(fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}"))
 
-    modImplementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
-        exclude(group: "net.fabricmc.fabric-api")
-    }
-
-    modImplementation("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}")
-
-    modCompileOnly("mcp.mobius.waila:wthit-api:fabric-${project.wthit_version}") {
-        exclude group: "net.fabricmc.fabric-api"
-    }
-
-    // PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
-    // You may need to force-disable transitiveness on them.
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
-processResources {
-    inputs.property "version", project.version
-    filteringCharset "UTF-8"
-
-    filesMatching("fabric.mod.json") {
-        expand "version": project.version
-    }
-}
-
-def targetJavaVersion = 17
-tasks.withType(JavaCompile).configureEach {
-    // ensure that the encoding is set to UTF-8, no matter what the system default is
-    // this fixes some edge cases with special characters not displaying correctly
-    // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
-    // If Javadoc is generated, this must be specified in that task too.
-    it.options.encoding = "UTF-8"
-    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
-        it.options.release = targetJavaVersion
+sourceSets {
+    main {
+        resources {
+            srcDir("src/generated/resources")
+        }
     }
 }
 
 java {
-    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
-    if (JavaVersion.current() < javaVersion) {
-        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
-    }
-    archivesBaseName = project.archives_base_name
-    // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-    // if it is present.
-    // If you remove this line, sources will not be generated.
-    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
-jar {
-    from("LICENSE") {
-        rename { "${it}_${project.archivesBaseName}" }
-    }
+mixin {
+    // MixinGradle Settings
+    add sourceSets.main, 'mixins.ae2things.refmap.json'
+    config 'mixins.ae2things.json'
 }
 
-// configure the maven publication
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            // add all the jars that should be included when publishing to maven
-            artifact(remapJar) {
-                builtBy remapJar
-            }
-            artifact(sourcesJar) {
-                builtBy remapSourcesJar
+////////////////////
+// Forge/Minecraft
+minecraft {
+    mappings(channel: "official", version: "${minecraft_version}")
+
+    /**
+     * Configures properties common to all run configurations
+     */
+    def commonRunProperties = {
+        workingDirectory(project.file("run"))
+
+        property("forge.logging.console.level", "debug")
+        property("fml.earlyprogresswindow", "false")
+        jvmArgs("--add-opens", "java.base/sun.security.util=ALL-UNNAMED")
+        jvmArgs("--add-opens", "java.base/java.util.jar=ALL-UNNAMED")
+
+        // See https://github.com/Vazkii/Patchouli#mixin-troubleshooting
+        property("mixin.env.remapRefMap", "true")
+        property("mixin.env.refMapRemappingFile", "${projectDir}/build/createSrgToMcp/output.srg")
+        // property "mixin.debug.export", "true"
+
+        mods {
+            ae2things {
+                source(sourceSets.main)
             }
         }
     }
 
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-    repositories {
-        // Add repositories to publish to here.
-        // Notice: This block does NOT have the same function as the block in the top level.
-        // The repositories here will be used for publishing your artifact, not for
-        // retrieving dependencies.
+    runs {
+        client {
+            with(commonRunProperties)
+        }
+
+        server {
+            with(commonRunProperties)
+        }
+
+        data {
+            with(commonRunProperties)
+            // ForgeGradle will just force-exit the Gradle Daemon which fails our builds in case
+            // a daemon is used for any reason.
+            forceExit false
+            args("--mod", "ae2things", "--all", "--output", file("src/generated/resources/"), "--existing", file("src/main/resources"))
+        }
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+    options.release.set(17)
+}
+
+processResources {
+    inputs.property("version", project.version)
+
+    exclude(".cache")
+
+    filesMatching("META-INF/mods.toml") {
+        expand("version": project.version)
+    }
+}
+
+jar {
+    finalizedBy("reobfJar")
+
+    from(sourceSets.main.output.classesDirs)
+    from(sourceSets.main.output.resourcesDir)
+
+    manifest {
+        attributes([
+                "Specification-Title"     : "AE2Things",
+                "Specification-Vendor"    : "Technici4n",
+                "Specification-Version"   : "${project.version}",
+                "Implementation-Title"    : "${project.name}",
+                "Implementation-Version"  : "${project.version}",
+                "Implementation-Vendor"   : "Technici4n",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+/////////////
+// Spotless
+spotless {
+    java {
+        target("src/main/java/**/*.java")
+
+        endWithNewline()
+        indentWithSpaces()
+        removeUnusedImports()
+        toggleOffOn()
+        eclipse().configFile("codeformat/codeformat.xml")
+        importOrderFile("codeformat/ae2.importorder")
+    }
+
+    format("json") {
+        target("src/*/resources/**/*.json")
+        targetExclude("src/generated/resources/**")
+        prettier().config(parser: "json")
+    }
+}
+
+////////////////
+// CurseForge
+System.getenv("CURSEFORGE")?.with { String key ->
+    curseforge {
+        apiKey = key
+
+        project {
+            id = "609977"
+            changelogType = "markdown"
+            changelog = "View changelog at [the release page](https://github.com/Technici4n/AE2Things-Forge/releases/tag/${version})"
+
+            if (version.contains("alpha")) {
+                releaseType = "alpha"
+            } else if (version.contains("beta")) {
+                releaseType = "beta"
+            } else {
+                releaseType = "release"
+            }
+
+            addGameVersion("${minecraft_version}")
+            addGameVersion("Forge")
+
+            mainArtifact(jar) {
+                displayName = "${project.version}"
+
+                relations {
+                    requiredDependency("applied-energistics-2")
+                }
+            }
+        }
     }
 }

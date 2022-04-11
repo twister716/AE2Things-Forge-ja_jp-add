@@ -1,16 +1,7 @@
 package io.github.projectet.ae2things.mixin;
 
-import io.github.projectet.ae2things.AE2Things;
-import io.github.projectet.ae2things.item.DISKDrive;
-import io.github.projectet.ae2things.storage.DISKCellInventory;
-import io.github.projectet.ae2things.util.Constants;
-import io.github.projectet.ae2things.util.DataStorage;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.util.collection.DefaultedList;
+import java.util.UUID;
+
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,29 +11,40 @@ import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-import java.util.UUID;
+import io.github.projectet.ae2things.AE2Things;
+import io.github.projectet.ae2things.storage.DISKCellInventory;
+import io.github.projectet.ae2things.util.Constants;
+import io.github.projectet.ae2things.util.DataStorage;
 
-@Mixin(ScreenHandler.class)
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+
+@Mixin(AbstractContainerMenu.class)
 public abstract class CursedInternalSlotMixin {
 
     @Final
     @Shadow
-    public DefaultedList<Slot> slots;
+    public NonNullList<Slot> slots;
 
-    @Inject(method = "internalOnSlotClick", at = @At(value = "INVOKE", target = "net/minecraft/item/ItemStack.copy ()Lnet/minecraft/item/ItemStack;"), slice = @Slice(from = @At(value = "INVOKE", target = "net/minecraft/screen/slot/Slot.hasStack()Z")), locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true)
-    public void CLONE(int slotIndex, int button, SlotActionType actionType, PlayerEntity player, CallbackInfo ci) {
+    @Inject(method = "doClick", at = @At(value = "INVOKE", target = "net/minecraft/world/item/ItemStack.copy ()Lnet/minecraft/world/item/ItemStack;"), slice = @Slice(from = @At(value = "INVOKE", target = "net/minecraft/world/inventory/Slot.hasItem()Z")), locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true)
+    public void CLONE(int slotIndex, int button, ClickType actionType, Player player, CallbackInfo ci) {
         Slot i = this.slots.get(slotIndex);
-        if(DISKCellInventory.hasDiskUUID(i.getStack())) {
-                DataStorage storage = AE2Things.STORAGE_INSTANCE.getOrCreateDisk(i.getStack().getOrCreateNbt().getUuid(Constants.DISKUUID));
-                ItemStack newStack = new ItemStack(i.getStack().getItem());
-                UUID id = UUID.randomUUID();
-                newStack.getOrCreateNbt().putUuid(Constants.DISKUUID, id);
-                newStack.getOrCreateNbt().putLong(DISKCellInventory.ITEM_COUNT_TAG, storage.itemCount);
-                AE2Things.STORAGE_INSTANCE.updateDisk(id, storage);
+        if (DISKCellInventory.hasDiskUUID(i.getItem())) {
+            DataStorage storage = AE2Things.STORAGE_INSTANCE
+                    .getOrCreateDisk(i.getItem().getOrCreateTag().getUUID(Constants.DISKUUID));
+            ItemStack newStack = new ItemStack(i.getItem().getItem());
+            UUID id = UUID.randomUUID();
+            newStack.getOrCreateTag().putUUID(Constants.DISKUUID, id);
+            newStack.getOrCreateTag().putLong(DISKCellInventory.ITEM_COUNT_TAG, storage.itemCount);
+            AE2Things.STORAGE_INSTANCE.updateDisk(id, storage);
 
-                newStack.setCount(newStack.getMaxCount());
-                this.setCursorStack(newStack);
-                ci.cancel();
+            newStack.setCount(newStack.getMaxStackSize());
+            this.setCursorStack(newStack);
+            ci.cancel();
         }
     }
 
