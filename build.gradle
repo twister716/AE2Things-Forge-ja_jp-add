@@ -205,7 +205,7 @@ System.getenv("CURSEFORGE")?.with { String key ->
             addGameVersion("Forge")
 
             mainArtifact(jar) {
-                displayName = "${project.version}"
+                displayName = "AE2 Things v${version}"
 
                 relations {
                     requiredDependency("applied-energistics-2")

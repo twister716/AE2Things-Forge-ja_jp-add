@@ -35,5 +35,5 @@ jobs:
       - name: Upload to CurseForge
         run: ./gradlew curseforge
         env:
-          APPMEK_VERSION: ${{ github.event.release.tag_name }}
+          AE2THINGS_VERSION: ${{ github.event.release.tag_name }}
           CURSEFORGE: ${{ secrets.CURSEFORGE }}
