@@ -18,15 +18,15 @@ license="MIT"
 modId="ae2things" #mandatory
 version="${version}" #mandatory
  # A display name for the mod
-displayName="AE2Things" #mandatory
+displayName="AE2 Things" #mandatory
 # A URL to query for updates for this mod. See the JSON update specification https://mcforge.readthedocs.io/en/latest/gettingstarted/autoupdate/
 #updateJSONURL="https://change.me.example.invalid/updates.json" #optional
 # A URL for the "homepage" for this mod, displayed in the mod UI
-#displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional
+displayURL="https://www.curseforge.com/minecraft/mc-mods/ae2-things-forge"
 # A file name (in the root of the mod JAR) containing a logo for display
-logoFile="assets/ae2things/icon.png" #optional
+logoFile="icon.png"
 # A text field displayed in the mod UI
-#credits="Thanks for this example mod goes to Java" #optional
+credits="Thanks to ProjectET for the initial Fabric version." #optional
 # A text field displayed in the mod UI
 authors="ProjectET, Technici4n" #optional
 # The description text for the mod (multi line!) (#mandatory)
