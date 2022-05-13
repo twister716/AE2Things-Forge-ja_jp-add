@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.items.ItemHandlerHelper;
 
 import appeng.api.config.Actionable;
 import appeng.api.config.PowerMultiplier;
@@ -118,19 +119,8 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     }
 
     @Override
-    public void setOrientation(final Direction inForward, final Direction inUp) {
-        setPowerSides(EnumSet.allOf(Direction.class));
-    }
-
-    @Override
     public IUpgradeInventory getUpgrades() {
         return upgrades;
-    }
-
-    @Override
-    public void onReady() {
-        this.getMainNode().setExposedOnSides(EnumSet.allOf(Direction.class));
-        super.onReady();
     }
 
     private void setClientStart(long clientStart) {
@@ -186,7 +176,8 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     @Nullable
     public InscriberRecipe getTask() {
         if (this.cachedTask == null && level != null) {
-            ItemStack input = this.sideItemHandler.getStackInSlot(0);
+            // copy with size 1 since that is directly used as name plate recipe outputs...
+            ItemStack input = ItemHandlerHelper.copyStackWithSize(this.sideItemHandler.getStackInSlot(0), 1);
             ItemStack plateA = this.topItemHandler.getStackInSlot(0);
             ItemStack plateB = this.botItemHandler.getStackInSlot(0);
             if (input.isEmpty()) {
@@ -346,13 +337,52 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
                 return false;
             }
 
+            // always allow name press
             if (inv == BEAdvancedInscriber.this.topItemHandler || inv == BEAdvancedInscriber.this.botItemHandler) {
                 if (AEItems.NAME_PRESS.isSameAs(stack)) {
                     return true;
                 }
-                return InscriberRecipes.isValidOptionalIngredient(getLevel(), stack);
             }
-            return true;
+
+            if (inv == sideItemHandler && (AEItems.NAME_PRESS.isSameAs(topItemHandler.getStackInSlot(0))
+                    || AEItems.NAME_PRESS.isSameAs(botItemHandler.getStackInSlot(0)))) {
+                // can always rename anything
+                return true;
+            }
+
+            // only allow if is a proper recipe match
+            ItemStack bot = botItemHandler.getStackInSlot(0);
+            ItemStack middle = sideItemHandler.getStackInSlot(0);
+            ItemStack top = topItemHandler.getStackInSlot(0);
+
+            if (inv == botItemHandler)
+                bot = stack;
+            if (inv == sideItemHandler)
+                middle = stack;
+            if (inv == topItemHandler)
+                top = stack;
+
+            for (var recipe : InscriberRecipes.getRecipes(getLevel())) {
+                if (!middle.isEmpty() && !recipe.getMiddleInput().test(middle)) {
+                    continue;
+                }
+
+                if (bot.isEmpty()) {
+                    if (recipe.getTopOptional().test(top) || recipe.getBottomOptional().test(top)) {
+                        return true;
+                    }
+                } else if (top.isEmpty()) {
+                    if (recipe.getBottomOptional().test(bot) || recipe.getTopOptional().test(bot)) {
+                        return true;
+                    }
+                } else {
+                    if ((recipe.getTopOptional().test(top) && recipe.getBottomOptional().test(bot))
+                            || (recipe.getBottomOptional().test(top) && recipe.getTopOptional().test(bot))) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
     }
 }
