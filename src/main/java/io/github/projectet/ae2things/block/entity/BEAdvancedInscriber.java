@@ -367,7 +367,9 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
                     continue;
                 }
 
-                if (bot.isEmpty()) {
+                if (bot.isEmpty() && top.isEmpty()) {
+                    return true;
+                } else if (bot.isEmpty()) {
                     if (recipe.getTopOptional().test(top) || recipe.getBottomOptional().test(top)) {
                         return true;
                     }
