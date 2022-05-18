@@ -1,7 +1,9 @@
 package io.github.projectet.ae2things.block.entity;
 
 import java.util.EnumSet;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
@@ -52,6 +54,11 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     private final AppEngInternalInventory topItemHandler = new AppEngInternalInventory(this, 1, 64);
     private final AppEngInternalInventory botItemHandler = new AppEngInternalInventory(this, 1, 64);
     private final AppEngInternalInventory sideItemHandler = new AppEngInternalInventory(this, 2, 64);
+
+    private final Map<InternalInventory, ItemStack> lastStacks = new IdentityHashMap<>(Map.of(
+            topItemHandler, ItemStack.EMPTY,
+            botItemHandler, ItemStack.EMPTY,
+            sideItemHandler, ItemStack.EMPTY));
 
     // The externally visible inventories (with filters applied)
     private final InternalInventory topItemHandlerExtern;
@@ -107,11 +114,12 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     @Override
     public void onChangeInventory(InternalInventory inv, int slot) {
         if (slot == 0) {
-            this.setProcessingTime(0);
-        }
-
-        if (!this.isSmash()) {
-            this.markForUpdate();
+            boolean isEmpty = inv.getStackInSlot(0).isEmpty();
+            boolean wasEmpty = lastStacks.get(inv).isEmpty();
+            lastStacks.put(inv, inv.getStackInSlot(0).copy());
+            if (isEmpty != wasEmpty) {
+                this.setProcessingTime(0);
+            }
         }
 
         this.cachedTask = null;
