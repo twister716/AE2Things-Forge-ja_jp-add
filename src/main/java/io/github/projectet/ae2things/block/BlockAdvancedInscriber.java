@@ -30,20 +30,20 @@ public class BlockAdvancedInscriber extends AEBaseEntityBlock<BEAdvancedInscribe
     public BlockAdvancedInscriber(BlockBehaviour.Properties settings) {
         super(settings);
         settings.requiresCorrectToolForDrops();
-        this.registerDefaultState(this.defaultBlockState().setValue(SMASHING, false));
+        this.registerDefaultState(this.defaultBlockState().setValue(WORKING, false));
     }
 
-    public static final BooleanProperty SMASHING = BooleanProperty.create("smashing");
+    public static final BooleanProperty WORKING = BooleanProperty.create("working");
 
     @Override
     protected BlockState updateBlockStateFromBlockEntity(BlockState currentState, BEAdvancedInscriber be) {
-        return currentState.setValue(SMASHING, be.isSmash());
+        return currentState.setValue(WORKING, be.isWorking());
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(SMASHING);
+        builder.add(WORKING);
     }
 
     @Override

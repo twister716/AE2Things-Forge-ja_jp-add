@@ -67,8 +67,6 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
 
     private final InternalInventory combinedExtInventory;
 
-    private int finalStep;
-
     private final InternalInventory inv = new CombinedInternalInventory(this.topItemHandler, this.botItemHandler,
             this.sideItemHandler);
 
@@ -77,7 +75,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     private int processingTime = 0;
     private final int maxProcessingTime = 100;
     private boolean smash;
-    private long clientStart;
+    private boolean working;
 
     public BEAdvancedInscriber(BlockPos pos, BlockState state) {
         super(AE2Things.ADVANCED_INSCRIBER_BE.get(), pos, state);
@@ -131,10 +129,6 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
         return upgrades;
     }
 
-    private void setClientStart(long clientStart) {
-        this.clientStart = clientStart;
-    }
-
     @Override
     protected boolean readFromStream(FriendlyByteBuf data) {
         var c = super.readFromStream(data);
@@ -144,7 +138,6 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
 
         if (oldSmash != newSmash && newSmash) {
             setSmash(true);
-            setClientStart(System.currentTimeMillis());
         }
 
         for (int i = 0; i < this.inv.size(); i++) {
@@ -227,6 +220,17 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
         return this.isSmash();
     }
 
+    public boolean isWorking() {
+        return working;
+    }
+
+    private void matchWork() {
+        if(isWorking() != hasWork()) {
+            working = hasWork();
+            this.markForUpdate();
+        }
+    }
+
     private void setProcessingTime(int processingTime) {
         this.processingTime = processingTime;
     }
@@ -238,9 +242,8 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
 
     @Override
     public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall) {
+        matchWork();
         if (this.isSmash()) {
-            this.finalStep++;
-            if (this.finalStep == 8) {
                 final InscriberRecipe out = this.getTask();
                 if (out != null) {
                     final ItemStack outputCopy = out.getResultItem().copy();
@@ -261,20 +264,19 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
                                 outStack.getCount(), Actionable.MODULATE, new MachineSource(this));
                         sideItemHandler.extractItem(1, (int) inserted, false);
                     }
+
+                    this.saveChanges();
+                    this.setSmash(false);
+                    this.markForUpdate();
                 }
-                this.saveChanges();
-            } else if (this.finalStep == 16) {
-                this.finalStep = 0;
-                this.setSmash(false);
-                this.markForUpdate();
-            }
+
         } else {
             getMainNode().ifPresent(grid -> {
                 IEnergyService eg = grid.getEnergyService();
                 IEnergySource src = this;
 
                 // Base 1, increase by 1 for each card
-                final int speedFactor = 1 + this.upgrades.getInstalledUpgrades(AEItems.SPEED_CARD);
+                final int speedFactor = 1 + (this.upgrades.getInstalledUpgrades(AEItems.SPEED_CARD) * 2);
                 final int powerConsumption = 10 * speedFactor;
                 final double powerThreshold = powerConsumption - 0.01;
                 double powerReq = this.extractAEPower(powerConsumption, Actionable.SIMULATE, PowerMultiplier.CONFIG);
@@ -302,13 +304,12 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
                     final ItemStack outputCopy = out.getResultItem().copy();
                     if (this.sideItemHandler.insertItem(1, outputCopy, true).isEmpty()) {
                         this.setSmash(true);
-                        this.finalStep = 0;
                         this.markForUpdate();
                     }
                 }
             }
         }
-
+        matchWork();
         return this.hasWork() ? TickRateModulation.URGENT : TickRateModulation.SLEEP;
     }
 
