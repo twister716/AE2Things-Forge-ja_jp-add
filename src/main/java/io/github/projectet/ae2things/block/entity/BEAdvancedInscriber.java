@@ -224,7 +224,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     }
 
     private void matchWork() {
-        if(isWorking() != hasWork()) {
+        if (isWorking() != hasWork()) {
             working = hasWork();
             this.markForUpdate();
         }
@@ -242,7 +242,7 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
     @Override
     public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall) {
         matchWork();
-        if(getTask() != null) {
+        if (getTask() != null) {
             getMainNode().ifPresent(grid -> {
                 IEnergyService eg = grid.getEnergyService();
                 IEnergySource src = this;
@@ -288,13 +288,15 @@ public class BEAdvancedInscriber extends AENetworkPowerBlockEntity implements IG
         if (sideItemHandler.getStackInSlot(1).getItem() != Items.AIR) {
             ItemStack outStack = sideItemHandler.getStackInSlot(1);
             AEKey itemKey = AEItemKey.of(outStack);
-            long inserted = getMainNode().getGrid().getStorageService().getInventory().insert(itemKey, outStack.getCount(), Actionable.MODULATE, new MachineSource(this));
+            long inserted = getMainNode().getGrid().getStorageService().getInventory().insert(itemKey,
+                    outStack.getCount(), Actionable.MODULATE, new MachineSource(this));
             sideItemHandler.extractItem(1, (int) inserted, false);
             this.saveChanges();
         }
 
         matchWork();
-        return this.hasWork() ? TickRateModulation.URGENT : !this.inv.isEmpty() ? TickRateModulation.SLOWER : TickRateModulation.SLEEP;
+        return this.hasWork() ? TickRateModulation.URGENT
+                : !this.inv.isEmpty() ? TickRateModulation.SLOWER : TickRateModulation.SLEEP;
     }
 
     public int getMaxProcessingTime() {

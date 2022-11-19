@@ -66,7 +66,7 @@ public class Command {
         Player player = context.getSource().getPlayerOrException();
 
         if (AE2Things.STORAGE_INSTANCE.hasUUID(uuid)) {
-            ItemStack stack = new ItemStack(AETItems.DISK_DRIVE_64K.get());
+            ItemStack stack = new ItemStack(AETItems.DISK_DRIVE_256K.get());
             CompoundTag nbt = new CompoundTag();
 
             nbt.putUUID(Constants.DISKUUID, uuid);

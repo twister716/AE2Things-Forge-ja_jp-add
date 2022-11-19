@@ -47,7 +47,8 @@ public class AE2ThingsClient {
                     });
 
             Minecraft.getInstance().getItemColors().register(DISKDrive::getColor, AETItems.DISK_DRIVE_1K.get(),
-                    AETItems.DISK_DRIVE_4K.get(), AETItems.DISK_DRIVE_16K.get(), AETItems.DISK_DRIVE_64K.get(), AETItems.DISK_DRIVE_256K.get());
+                    AETItems.DISK_DRIVE_4K.get(), AETItems.DISK_DRIVE_16K.get(), AETItems.DISK_DRIVE_64K.get(),
+                    AETItems.DISK_DRIVE_256K.get());
         });
     }
 }
