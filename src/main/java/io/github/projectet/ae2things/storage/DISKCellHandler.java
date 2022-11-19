@@ -6,7 +6,6 @@ import io.github.projectet.ae2things.item.DISKDrive;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.item.ItemStack;
 
 import appeng.api.config.IncludeExclude;
@@ -36,8 +35,8 @@ public class DISKCellHandler implements ICellHandler {
             return;
 
         if (handler.hasDiskUUID()) {
-            lines.add(new TextComponent("Disk UUID: ").withStyle(ChatFormatting.GRAY)
-                    .append(new TextComponent(handler.getDiskUUID().toString()).withStyle(ChatFormatting.AQUA)));
+            lines.add(Component.literal("Disk UUID: ").withStyle(ChatFormatting.GRAY)
+                    .append(Component.literal(handler.getDiskUUID().toString()).withStyle(ChatFormatting.AQUA)));
             lines.add(Tooltips.bytesUsed(handler.getNbtItemCount(), handler.getTotalBytes()));
         }
 

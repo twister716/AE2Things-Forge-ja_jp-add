@@ -20,8 +20,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -52,11 +50,11 @@ public class Command {
             .build();
 
     private static int help(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendSuccess(new TextComponent("Available Argument(s): "), false);
-        context.getSource().sendSuccess(new TextComponent(
+        context.getSource().sendSuccess(Component.literal("Available Argument(s): "), false);
+        context.getSource().sendSuccess(Component.literal(
                 "/ae2things recover <UUID> - Spawns a drive with the given UUID, if it doesn't exist, does not spawn any item."),
                 false);
-        context.getSource().sendSuccess(new TextComponent(
+        context.getSource().sendSuccess(Component.literal(
                 "/ae2things getuuid - Gets the UUID of the drive in the player's hand if it has a UUID. Returns the DISKS uuid."),
                 false);
         return 0;
@@ -76,11 +74,11 @@ public class Command {
             player.addItem(stack);
 
             context.getSource().sendSuccess(
-                    new TranslatableComponent("command.ae2things.recover_success", player.getDisplayName(), uuid),
+                    Component.translatable("command.ae2things.recover_success", player.getDisplayName(), uuid),
                     true);
             return 0;
         } else {
-            context.getSource().sendFailure(new TranslatableComponent("command.ae2things.recover_fail", uuid));
+            context.getSource().sendFailure(Component.translatable("command.ae2things.recover_fail", uuid));
             return 1;
         }
     }
@@ -91,23 +89,23 @@ public class Command {
         if (mainStack.getItem() instanceof IDISKCellItem) {
             if (mainStack.hasTag() && mainStack.getTag().contains(Constants.DISKUUID)) {
                 Component text = copyToClipboard(mainStack.getTag().getUUID(Constants.DISKUUID).toString());
-                context.getSource().sendSuccess(new TranslatableComponent("command.ae2things.getuuid_success", text),
+                context.getSource().sendSuccess(Component.translatable("command.ae2things.getuuid_success", text),
                         false);
                 return 0;
             } else {
-                context.getSource().sendFailure(new TranslatableComponent("command.ae2things.getuuid_fail_nouuid"));
+                context.getSource().sendFailure(Component.translatable("command.ae2things.getuuid_fail_nouuid"));
                 return 1;
             }
         }
-        context.getSource().sendFailure(new TranslatableComponent("command.ae2things.getuuid_fail_notdisk"));
+        context.getSource().sendFailure(Component.translatable("command.ae2things.getuuid_fail_notdisk"));
         return 1;
     }
 
     private static Component copyToClipboard(String string) {
-        return new TextComponent(string).withStyle(style -> style
+        return Component.literal(string).withStyle(style -> style
                 .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, string))
                 .withHoverEvent(
-                        new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("chat.copy.click")))
+                        new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("chat.copy.click")))
                 .withInsertion(string)
                 .withColor(ChatFormatting.GREEN));
     }

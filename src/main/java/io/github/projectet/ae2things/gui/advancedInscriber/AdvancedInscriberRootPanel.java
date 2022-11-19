@@ -1,7 +1,6 @@
 package io.github.projectet.ae2things.gui.advancedInscriber;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.player.Inventory;
 
 import appeng.client.gui.implementations.UpgradeableScreen;
@@ -24,6 +23,6 @@ public class AdvancedInscriberRootPanel extends UpgradeableScreen<AdvancedInscri
         super.updateBeforeRender();
 
         int progress = this.menu.getCurrentProgress() * 100 / this.menu.getMaxProgress();
-        this.pb.setFullMsg(new TextComponent(progress + "%"));
+        this.pb.setFullMsg(Component.literal(progress + "%"));
     }
 }

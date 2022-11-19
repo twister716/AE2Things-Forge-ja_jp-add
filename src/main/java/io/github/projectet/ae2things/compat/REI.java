@@ -8,14 +8,16 @@ import net.minecraft.world.item.ItemStack;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 
 import appeng.core.AppEng;
+import appeng.recipes.handlers.InscriberRecipe;
 
 @JeiPlugin
 public class REI implements IModPlugin {
-    ResourceLocation ID = AppEng.makeId("ae2.inscriber");
+    RecipeType<InscriberRecipe> ID = RecipeType.create(AppEng.MOD_ID, "inscriber", InscriberRecipe.class);
 
     @Override
     public ResourceLocation getPluginUid() {

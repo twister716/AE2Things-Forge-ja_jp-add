@@ -12,7 +12,6 @@ import io.github.projectet.ae2things.storage.IDISKCellItem;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -145,7 +144,7 @@ public class DISKDrive extends Item implements IDISKCellItem, AEToolItem {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag context) {
-        tooltip.add(new TextComponent("Deep Item Storage disK - Storage for dummies")
+        tooltip.add(Component.literal("Deep Item Storage disK - Storage for dummies")
                 .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
         addCellInformationToTooltip(stack, tooltip);
     }
