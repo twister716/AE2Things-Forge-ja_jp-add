@@ -120,7 +120,7 @@ public class AE2Things {
     }
 
     public static void worldTick(TickEvent.LevelTickEvent event) {
-        if (event.phase == TickEvent.Phase.START) {
+        if (event.phase == TickEvent.Phase.START && event.side.isServer()) {
             STORAGE_INSTANCE = StorageManager.getInstance(event.level.getServer());
         }
     }
