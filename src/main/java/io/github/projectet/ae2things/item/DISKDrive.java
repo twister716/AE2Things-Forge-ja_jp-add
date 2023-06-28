@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
-import io.github.projectet.ae2things.AE2Things;
 import io.github.projectet.ae2things.storage.DISKCellHandler;
 import io.github.projectet.ae2things.storage.IDISKCellItem;
 
@@ -41,7 +40,7 @@ public class DISKDrive extends Item implements IDISKCellItem, AEToolItem {
     private final ItemLike coreItem;
 
     public DISKDrive(ItemLike coreItem, int kilobytes, double idleDrain) {
-        super(new Properties().stacksTo(1).tab(AE2Things.ITEM_GROUP.get()).fireResistant());
+        super(new Properties().stacksTo(1).fireResistant());
         this.bytes = kilobytes * 1000;
         this.coreItem = coreItem;
         this.idleDrain = idleDrain;

@@ -31,7 +31,7 @@ credits="Thanks to ProjectET for the initial Fabric version." #optional
 authors="ProjectET, Technici4n" #optional
 # The description text for the mod (multi line!) (#mandatory)
 description='''
-This mod adds two machines from AE2Stuff the Advanced Inscriber and Crystal Growth Chamber, and a new type of cell the DISK: Deep Item Storage disK.
+This mod adds a new type of cell the DISK: Deep Item Storage disK.
 This cell has no type limits and one item counts as one byte.
 Due to limitations with the cell format, you lose 24 bytes per kibibyte, but hey a small price to pay for no types right?
 '''
@@ -51,13 +51,12 @@ Due to limitations with the cell format, you lose 24 bytes per kibibyte, but hey
 [[dependencies.ae2things]]
     modId="minecraft"
     mandatory=true
-# This version range declares a minimum of the current minecraft version up to but not including the next major version
-    versionRange="[1.19.2,1.19.3)"
+    versionRange="[1.20.1,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.ae2things]]
     modId="ae2"
     mandatory=true
-    versionRange = "(,13.0.0)"
+    versionRange = "[15.0.0, 16.0.0)"
     ordering="AFTER"
     side="BOTH"

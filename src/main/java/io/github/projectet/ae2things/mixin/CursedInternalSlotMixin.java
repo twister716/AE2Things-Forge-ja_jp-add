@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import io.github.projectet.ae2things.AE2Things;
 import io.github.projectet.ae2things.storage.DISKCellInventory;
@@ -30,7 +29,7 @@ public abstract class CursedInternalSlotMixin {
     @Shadow
     public NonNullList<Slot> slots;
 
-    @Inject(method = "doClick", at = @At(value = "INVOKE", target = "net/minecraft/world/item/ItemStack.copy ()Lnet/minecraft/world/item/ItemStack;"), slice = @Slice(from = @At(value = "INVOKE", target = "net/minecraft/world/inventory/Slot.hasItem()Z")), locals = LocalCapture.CAPTURE_FAILHARD, cancellable = true)
+    @Inject(method = "doClick", at = @At(value = "INVOKE", target = "net/minecraft/world/item/ItemStack.copyWithCount (I)Lnet/minecraft/world/item/ItemStack;"), slice = @Slice(from = @At(value = "INVOKE", target = "net/minecraft/world/inventory/Slot.hasItem()Z")), cancellable = true)
     public void CLONE(int slotIndex, int button, ClickType actionType, Player player, CallbackInfo ci) {
         Slot i = this.slots.get(slotIndex);
         if (DISKCellInventory.hasDiskUUID(i.getItem())) {

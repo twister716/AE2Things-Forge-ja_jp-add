@@ -9,7 +9,7 @@ buildscript {
     }
 
     dependencies {
-        classpath(group: "net.minecraftforge.gradle", name: "ForgeGradle", version: "5.1.+", changing: true)
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.0.+', changing: true
         classpath 'org.spongepowered:mixingradle:0.7.+'
     }
 }
@@ -19,7 +19,7 @@ plugins {
     id("com.diffplug.spotless") version "6.4.1"
 }
 
-apply(plugin: "net.minecraftforge.gradle")
+apply plugin: "net.minecraftforge.gradle"
 apply plugin: 'org.spongepowered.mixin'
 
 group = "dev.technici4n"
@@ -36,8 +36,8 @@ repositories {
     }
 
     maven {
-        name = "Progwml6 maven"
-        url = uri("https://dvs1.progwml6.com/files/maven/")
+        name = 'BlameJared Maven'
+        url = uri('https://maven.blamejared.com')
 
         content {
             includeGroup("mezz.jei")
@@ -71,8 +71,9 @@ sourceSets {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 mixin {
@@ -120,9 +121,6 @@ minecraft {
 
         data {
             with(commonRunProperties)
-            // ForgeGradle will just force-exit the Gradle Daemon which fails our builds in case
-            // a daemon is used for any reason.
-            forceExit false
             args("--mod", "ae2things", "--all", "--output", file("src/generated/resources/"), "--existing", file("src/main/resources"))
         }
     }
@@ -157,7 +155,7 @@ jar {
                 "Implementation-Title"    : "${project.name}",
                 "Implementation-Version"  : "${project.version}",
                 "Implementation-Vendor"   : "Technici4n",
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                "MixinConfigs"            : "mixins.ae2things.json",
         ])
     }
 }

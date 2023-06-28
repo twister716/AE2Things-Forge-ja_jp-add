@@ -50,11 +50,11 @@ public class Command {
             .build();
 
     private static int help(CommandContext<CommandSourceStack> context) {
-        context.getSource().sendSuccess(Component.literal("Available Argument(s): "), false);
-        context.getSource().sendSuccess(Component.literal(
+        context.getSource().sendSuccess(() -> Component.literal("Available Argument(s): "), false);
+        context.getSource().sendSuccess(() -> Component.literal(
                 "/ae2things recover <UUID> - Spawns a drive with the given UUID, if it doesn't exist, does not spawn any item."),
                 false);
-        context.getSource().sendSuccess(Component.literal(
+        context.getSource().sendSuccess(() -> Component.literal(
                 "/ae2things getuuid - Gets the UUID of the drive in the player's hand if it has a UUID. Returns the DISKS uuid."),
                 false);
         return 0;
@@ -74,7 +74,7 @@ public class Command {
             player.addItem(stack);
 
             context.getSource().sendSuccess(
-                    Component.translatable("command.ae2things.recover_success", player.getDisplayName(), uuid),
+                    () -> Component.translatable("command.ae2things.recover_success", player.getDisplayName(), uuid),
                     true);
             return 0;
         } else {
@@ -89,7 +89,7 @@ public class Command {
         if (mainStack.getItem() instanceof IDISKCellItem) {
             if (mainStack.hasTag() && mainStack.getTag().contains(Constants.DISKUUID)) {
                 Component text = copyToClipboard(mainStack.getTag().getUUID(Constants.DISKUUID).toString());
-                context.getSource().sendSuccess(Component.translatable("command.ae2things.getuuid_success", text),
+                context.getSource().sendSuccess(() -> Component.translatable("command.ae2things.getuuid_success", text),
                         false);
                 return 0;
             } else {

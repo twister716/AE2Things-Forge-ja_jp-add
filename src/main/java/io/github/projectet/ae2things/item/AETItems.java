@@ -14,7 +14,7 @@ import appeng.core.definitions.AEItems;
 public class AETItems {
 
     public static final RegistryObject<Item> DISK_HOUSING = AE2Things.ITEMS.register("disk_housing",
-            () -> new Item(new Item.Properties().stacksTo(64).tab(AE2Things.ITEM_GROUP.get()).fireResistant()));
+            () -> new Item(new Item.Properties().stacksTo(64).fireResistant()));
     public static final RegistryObject<Item> DISK_DRIVE_1K = AE2Things.ITEMS.register("disk_drive_1k",
             () -> new DISKDrive(AEItems.CELL_COMPONENT_1K.asItem(), 1, 0.5f));
     public static final RegistryObject<Item> DISK_DRIVE_4K = AE2Things.ITEMS.register("disk_drive_4k",
