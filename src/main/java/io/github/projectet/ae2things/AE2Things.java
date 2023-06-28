@@ -22,6 +22,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import appeng.api.ids.AECreativeTabIds;
 import appeng.api.storage.StorageCells;
+import appeng.api.upgrades.Upgrades;
+import appeng.core.definitions.AEItems;
 
 @Mod(AE2Things.MOD_ID)
 public class AE2Things {
@@ -57,6 +59,15 @@ public class AE2Things {
 
         StorageCells.addCellHandler(DISKCellHandler.INSTANCE);
         StorageCells.addCellGuiHandler(new DISKItemCellGuiHandler());
+
+        event.enqueueWork(() -> {
+            var disksText = "text.ae2things.disk_drives";
+
+            for (var cell : AETItems.DISK_DRIVES) {
+                Upgrades.add(AEItems.FUZZY_CARD, cell.get(), 1, disksText);
+                Upgrades.add(AEItems.INVERTER_CARD, cell.get(), 1, disksText);
+            }
+        });
     }
 
     public static void addContentsToCreativeTab(BuildCreativeModeTabContentsEvent event) {
@@ -65,11 +76,10 @@ public class AE2Things {
         }
 
         event.accept(AETItems.DISK_HOUSING);
-        event.accept(AETItems.DISK_DRIVE_1K);
-        event.accept(AETItems.DISK_DRIVE_4K);
-        event.accept(AETItems.DISK_DRIVE_16K);
-        event.accept(AETItems.DISK_DRIVE_64K);
-        event.accept(AETItems.DISK_DRIVE_256K);
+
+        for (var cell : AETItems.DISK_DRIVES) {
+            event.accept(cell);
+        }
     }
 
     public static void worldTick(TickEvent.LevelTickEvent event) {
