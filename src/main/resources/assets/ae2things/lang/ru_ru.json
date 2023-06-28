@@ -5,7 +5,6 @@
   "item.ae2things.disk_drive_64k": "Дисковый накопитель ME 64К",
   "item.ae2things.disk_drive_256k": "Дисковый накопитель ME 256К",
   "item.ae2things.disk_housing": "Корпус диска ME",
-  "itemGroup.ae2things.item_group": "AE2Things",
   "command.ae2things.recover_success": "%s восстановил Дисковый накопитель с UUID [%s].",
   "command.ae2things.recover_fail": "Не удалось восстановить Дисковый накопитель: (универсальный уникальный идентификатор) UUID [%s] не существует.",
   "command.ae2things.getuuid_success": "Диск получил UUID: [%s]",
