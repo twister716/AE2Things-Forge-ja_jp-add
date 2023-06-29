@@ -29,7 +29,7 @@ public abstract class CursedInternalSlotMixin {
     @Shadow
     public NonNullList<Slot> slots;
 
-    @Inject(method = "doClick", at = @At(value = "INVOKE", target = "net/minecraft/world/item/ItemStack.copyWithCount (I)Lnet/minecraft/world/item/ItemStack;"), slice = @Slice(from = @At(value = "INVOKE", target = "net/minecraft/world/inventory/Slot.hasItem()Z")), cancellable = true)
+    @Inject(method = "doClick", at = @At(value = "INVOKE", target = "net/minecraft/world/item/ItemStack.copyWithCount (I)Lnet/minecraft/world/item/ItemStack;"), slice = @Slice(from = @At(value = "INVOKE", target = "net/minecraft/world/inventory/Slot.hasItem()Z", ordinal = 1)), cancellable = true)
     public void CLONE(int slotIndex, int button, ClickType actionType, Player player, CallbackInfo ci) {
         Slot i = this.slots.get(slotIndex);
         if (DISKCellInventory.hasDiskUUID(i.getItem())) {
