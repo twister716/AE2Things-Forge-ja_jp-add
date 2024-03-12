@@ -3,9 +3,9 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.80'
-    id("com.matthewprenger.cursegradle") version "1.4.0"
-    id("com.diffplug.spotless") version "6.4.1"
+    id 'net.neoforged.gradle.userdev' version '7.0.97'
+    id 'com.matthewprenger.cursegradle' version '1.4.0'
+    id 'com.diffplug.spotless' version '6.4.1'
 }
 
 group = "dev.technici4n"
