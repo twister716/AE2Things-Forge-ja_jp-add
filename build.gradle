@@ -50,6 +50,16 @@ java {
         languageVersion = JavaLanguageVersion.of(21)
     }
 }
+
+jar {
+    manifest {
+        attributes(
+                // This replaces "file.jarVersion" found in neoforge.mods.toml
+                "Implementation-Version": version
+        )
+    }
+}
+
 neoForge {
     version = neoforge_version
 
