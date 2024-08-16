@@ -3,9 +3,10 @@ package io.github.projectet.ae2things.storage;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.jetbrains.annotations.Nullable;
+
 import io.github.projectet.ae2things.AE2Things;
 import io.github.projectet.ae2things.item.DISKDrive;
-import io.github.projectet.ae2things.util.Constants;
 import io.github.projectet.ae2things.util.DataStorage;
 import io.github.projectet.ae2things.util.StorageManager;
 
@@ -38,9 +39,6 @@ import appeng.util.prioritylist.IPartitionList;
 public class DISKCellInventory implements StorageCell {
 
     private final IDISKCellItem cellType;
-    public static final String ITEM_COUNT_TAG = "ic";
-    public static final String STACK_KEYS = "keys";
-    public static final String STACK_AMOUNTS = "amts";
 
     private final ISaveProvider container;
     private final AEKeyType keyType;
@@ -154,11 +152,12 @@ public class DISKCellInventory implements StorageCell {
             return;
         }
 
+        var storageInstance = getStorageInstance();
         if (storedItemCount == 0) {
             if (hasDiskUUID()) {
-                getStorageInstance().removeDisk(getDiskUUID());
-                i.getTag().remove(Constants.DISKUUID);
-                i.getTag().remove(DISKCellInventory.ITEM_COUNT_TAG);
+                storageInstance.removeDisk(getDiskUUID());
+                i.remove(AE2Things.DATA_DISK_ID);
+                i.remove(AE2Things.DATA_DISK_ITEM_COUNT);
                 initData();
             }
             return;
@@ -175,21 +174,21 @@ public class DISKCellInventory implements StorageCell {
 
             if (amount > 0) {
                 itemCount += amount;
-                keys.add(entry.getKey().toTagGeneric());
+                keys.add(entry.getKey().toTagGeneric(storageInstance.getRegistries()));
                 amounts.add(amount);
             }
         }
 
         if (keys.isEmpty()) {
-            getStorageInstance().updateDisk(getDiskUUID(), new DataStorage());
+            storageInstance.updateDisk(getDiskUUID(), new DataStorage());
         } else {
-            getStorageInstance().modifyDisk(getDiskUUID(), keys, amounts.toArray(new long[0]), itemCount);
+            storageInstance.modifyDisk(getDiskUUID(), keys, amounts.toArray(new long[0]), itemCount);
         }
 
         this.storedItems = (short) this.storedAmounts.size();
 
         this.storedItemCount = itemCount;
-        i.getOrCreateTag().putLong(DISKCellInventory.ITEM_COUNT_TAG, itemCount);
+        i.set(AE2Things.DATA_DISK_ITEM_COUNT, itemCount);
 
         this.isPersisted = true;
     }
@@ -202,7 +201,7 @@ public class DISKCellInventory implements StorageCell {
     public static DISKCellInventory createInventory(ItemStack stack, ISaveProvider saveProvider) {
         Objects.requireNonNull(stack, "Cannot create cell inventory for null itemstack");
 
-        if (!(stack.getItem()instanceof IDISKCellItem cellType)) {
+        if (!(stack.getItem() instanceof IDISKCellItem cellType)) {
             return null;
         }
 
@@ -216,21 +215,19 @@ public class DISKCellInventory implements StorageCell {
     }
 
     public boolean hasDiskUUID() {
-        return i.hasTag() && i.getOrCreateTag().contains(Constants.DISKUUID);
+        return i.has(AE2Things.DATA_DISK_ID);
     }
 
     public static boolean hasDiskUUID(ItemStack disk) {
         if (disk.getItem() instanceof IDISKCellItem) {
-            return disk.hasTag() && disk.getOrCreateTag().contains(Constants.DISKUUID);
+            return disk.has(AE2Things.DATA_DISK_ID);
         }
         return false;
     }
 
+    @Nullable
     public UUID getDiskUUID() {
-        if (hasDiskUUID())
-            return i.getOrCreateTag().getUUID(Constants.DISKUUID);
-        else
-            return null;
+        return i.get(AE2Things.DATA_DISK_ID);
     }
 
     private boolean isStorageCell(AEItemKey key) {
@@ -239,7 +236,7 @@ public class DISKCellInventory implements StorageCell {
     }
 
     private static DISKDrive getStorageCell(AEItemKey itemKey) {
-        if (itemKey.getItem()instanceof DISKDrive diskDrive) {
+        if (itemKey.getItem() instanceof DISKDrive diskDrive) {
             return diskDrive;
         }
 
@@ -272,10 +269,6 @@ public class DISKCellInventory implements StorageCell {
     private void loadCellItems() {
         boolean corruptedTag = false;
 
-        if (!i.hasTag()) {
-            return;
-        }
-
         var amounts = getDiskStorage().stackAmounts;
         var tags = getDiskStorage().stackKeys;
         if (amounts.length != tags.size()) {
@@ -283,9 +276,11 @@ public class DISKCellInventory implements StorageCell {
                     amounts.length, tags.size());
         }
 
+        var registries = getStorageInstance().getRegistries();
+
         for (int i = 0; i < amounts.length; i++) {
             var amount = amounts[i];
-            AEKey key = AEKey.fromTagGeneric(tags.getCompound(i));
+            AEKey key = AEKey.fromTagGeneric(registries, tags.getCompound(i));
 
             if (amount <= 0 || key == null) {
                 corruptedTag = true;
@@ -352,7 +347,7 @@ public class DISKCellInventory implements StorageCell {
         }
 
         if (!hasDiskUUID()) {
-            i.getOrCreateTag().putUUID(Constants.DISKUUID, UUID.randomUUID());
+            i.set(AE2Things.DATA_DISK_ID, UUID.randomUUID());
             getStorageInstance().getOrCreateDisk(getDiskUUID());
             loadCellItems();
         }
@@ -409,7 +404,7 @@ public class DISKCellInventory implements StorageCell {
 
     public long getNbtItemCount() {
         if (hasDiskUUID()) {
-            return i.getTag().getLong(DISKCellInventory.ITEM_COUNT_TAG);
+            return i.getOrDefault(AE2Things.DATA_DISK_ITEM_COUNT, 0L);
         }
         return 0;
     }

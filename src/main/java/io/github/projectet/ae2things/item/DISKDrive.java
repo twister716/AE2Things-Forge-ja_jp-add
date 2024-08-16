@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
+import io.github.projectet.ae2things.AE2Things;
 import io.github.projectet.ae2things.storage.DISKCellHandler;
 import io.github.projectet.ae2things.storage.IDISKCellItem;
 
@@ -41,7 +42,8 @@ public class DISKDrive extends Item implements IDISKCellItem, AEToolItem {
     private final ItemLike coreItem;
 
     public DISKDrive(ItemLike coreItem, int kilobytes, double idleDrain) {
-        super(new Properties().stacksTo(1).fireResistant());
+        super(new Properties().stacksTo(1).fireResistant().component(AE2Things.DATA_DISK_ITEM_COUNT, 0L)
+                .component(AE2Things.DATA_FUZZY_MODE, FuzzyMode.IGNORE_ALL));
         this.bytes = kilobytes * 1000;
         this.coreItem = coreItem;
         this.idleDrain = idleDrain;
@@ -74,20 +76,12 @@ public class DISKDrive extends Item implements IDISKCellItem, AEToolItem {
 
     @Override
     public FuzzyMode getFuzzyMode(final ItemStack is) {
-        final String fz = is.getOrCreateTag().getString("FuzzyMode");
-        if (fz.isEmpty()) {
-            return FuzzyMode.IGNORE_ALL;
-        }
-        try {
-            return FuzzyMode.valueOf(fz);
-        } catch (final Throwable t) {
-            return FuzzyMode.IGNORE_ALL;
-        }
+        return is.getOrDefault(AE2Things.DATA_FUZZY_MODE, FuzzyMode.IGNORE_ALL);
     }
 
     @Override
     public void setFuzzyMode(final ItemStack is, final FuzzyMode fzMode) {
-        is.getOrCreateTag().putString("FuzzyMode", fzMode.name());
+        is.set(AE2Things.DATA_FUZZY_MODE, fzMode);
     }
 
     @Override
@@ -143,7 +137,8 @@ public class DISKDrive extends Item implements IDISKCellItem, AEToolItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag context) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip,
+            TooltipFlag tooltipFlag) {
         tooltip.add(Component.literal("Deep Item Storage disK - Storage for dummies")
                 .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
         addCellInformationToTooltip(stack, tooltip);
@@ -154,10 +149,10 @@ public class DISKDrive extends Item implements IDISKCellItem, AEToolItem {
             // Determine LED color
             var cellInv = DISKCellHandler.INSTANCE.getCellInventory(stack, null);
             var cellStatus = cellInv != null ? cellInv.getClientStatus() : CellState.EMPTY;
-            return cellStatus.getStateColor();
+            return 0xFF000000 | cellStatus.getStateColor();
         } else {
             // White
-            return 0xFFFFFF;
+            return 0xFFFFFFFF;
         }
     }
 }
