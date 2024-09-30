@@ -1,0 +1,16 @@
+{
+  "item.ae2things.disk_drive_1k": "1k ME ディスクドライブ",
+  "item.ae2things.disk_drive_4k": "4k ME ディスクドライブ",
+  "item.ae2things.disk_drive_16k": "16k ME ディスクドライブ",
+  "item.ae2things.disk_drive_64k": "64k ME ディスクドライブ",
+  "item.ae2things.disk_drive_256k": "256k ME ディスクドライブ",
+  "item.ae2things.disk_housing": "MEディスク筐体",
+  "block.ae2things.advanced_inscriber": "発展型刻印機",
+  "itemGroup.ae2things.item_group": "AE2Things",
+  "gui.ae2things.advanced_inscriber": "発展型刻印機",
+  "command.ae2things.recover_success": "%s は UUID が [%s] のディスクドライブをリカバリしました。",
+  "command.ae2things.recover_fail": "ディスクドライブのリカバリに失敗しました: UUID [%s] が存在しません。",
+  "command.ae2things.getuuid_success": "指定された DISK の UUID は次の通りです: [%s]",
+  "command.ae2things.getuuid_fail_nouuid": "エラー:ディスクのUUIDが見つからないか、ディスクが空です",
+  "command.ae2things.getuuid_fail_notdisk": "エラー:ディスクが指定されていません"
+}
